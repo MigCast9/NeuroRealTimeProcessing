@@ -6,6 +6,7 @@
 import numpy as np
 import time
 import csv
+import configparser
 import os
 
 
@@ -44,13 +45,8 @@ mmfile = np.memmap(MMAP_FILE, dtype=np.uint16, mode='r+')
 # Assuming header has 16 elements and the rest of the data is in chA and chB
 header_size = 16 * np.dtype(np.uint16).itemsize
 
-
 # Read the header and the rest of the data
 header = np.frombuffer(mmfile, dtype=np.int16, count=16)
-
-print(f"File size: {os.path.getsize(MMAP_FILE)}")
-print(f"Expeted File size: {16 * 2 + 512*796*2*2}")
-
 
 #Returns a dictionary with the header information: look at variable definition to see how to access dict
 def extractHeaderData():
@@ -78,7 +74,6 @@ def extractHeaderData():
     return headerData
 
 def extractChannelData(nlines, ncols):
-    
     chA = np.frombuffer(mmfile, dtype=np.uint16, count=nlines * ncols, offset=header_size)
     chA = chA.reshape((nlines, ncols))
     
@@ -89,18 +84,10 @@ def main(mouseName, experimentID):
     
     nlines = 512
     ncols = 796
-    
-    scalarSumChA = 0
-    avgSumChA = 0
-
-    counter = 0
+        
     while True:
         headerData = extractHeaderData()
         currFrame = headerData['frame']
-        
-        #Remove when done
-        mmfile[0] = counter
-        ###
         
         #Stay here until new frame comes around
         while currFrame < 0:
@@ -109,10 +96,6 @@ def main(mouseName, experimentID):
             headerData = extractHeaderData()
             currFrame = headerData['frame']
         
-        #Display frame
-        print(f"\nValid Frame: {currFrame}\n")
-        print(f"Valid Header: {headerData}")
-        
         #If its our first time seeing a frame, we extract the dimensions for the channels
         if currFrame == 0:
             nlines = int(headerData['nlines'])            
@@ -120,36 +103,42 @@ def main(mouseName, experimentID):
         
         #Extract channels
         chA = extractChannelData(nlines, ncols)
-
-        #Temporary: Play around with channels, e.g create a running sum and running avg
-        scalarSumChA += np.sum(chA, dtype=np.uint32)
-        avgSumChA = scalarSumChA / (currFrame + 1)
-                
-        print(f"Scalar Running Sum: {scalarSumChA}")
-        print(f"Scalar Running Sum/Cnt: {avgSumChA}")
-        
-        with open(f'{mouseName}_{experimentID}/frame_{currFrame}.csv', mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerows(chA)
         
         #Signal that the frame has been consumed
         mmfile[0] = -1
         
-        #Remove when done
-        counter += 1
-        time.sleep(1)
-    
+        #####################################################################################
+        #Use the data
+        
+        
+        
+        #####################################################################################
+        
+        
+        
+        #Save each frame for future use if necessary
+        with open(f'{mouseName}_{experimentID}/frame_{currFrame}.csv', mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(chA)
+        
+        
 
 if __name__ == '__main__':   
-    #53950_1L_000_531
-    # mouseName = input("Mouse name: ")
-    # experimentID = input("Experiment ID: ")
-    mouseName = '53950_1L_000_531'
-    experimentID = 0
+    #Get config data
+    configPath = './config.ini'
+    cfg = configparser.RawConfigParser(allow_no_value=True)
+    cfg.read(configPath)
+    mouseName = cfg.get('name', 'miceName')
+    experimentID = cfg.get('experiment_id', 'experimentID')
     
+    #Create directory path to save frames
     directory_path = f'./{mouseName}_{experimentID}'
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
+    
+    #######################################
+    #Start operations
+    #######################################
     
     # 'C:\Users\DadarlatLab\Documents\MATLAB\ScanboxTower1-master\mmap\scanbox.mmap'
     main(mouseName, experimentID)
@@ -158,6 +147,5 @@ if __name__ == '__main__':
 
     #Working: Checked Plug in box
     #Woring: write -1 so matlab scanbox code knows its time for next frame
-    #Working: using nohup
     
     del mmfile
