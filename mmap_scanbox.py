@@ -9,36 +9,11 @@ import csv
 import configparser
 import os
 
+configPath = './config.ini'
+cfg = configparser.RawConfigParser(allow_no_value=True)
+cfg.read(configPath)
 
-# mmfile.Data.header(1) = -1;                 % frame or frame #
-# % -1, not started
-# % -2, stopped
-# % 0...N frame number
-# mmfile.Data.header(2) = int16(nlines);      % number of lines
-# mmfile.Data.header(3) = int16(ncol);        % number of columns
-# mmfile.Data.header(4) = 0;                  % TTL corresponding to stimulus
-# mmfile.Data.header(5) = int16(handles.volscan.Value);   % volumetric scanning flag
-
-# if ~isempty(handles.vol_table.Data)
-#     p = sum([handles.vol_table.Data{:,5}]);
-# else
-#     p = 1;
-# end
-
-# mmfile.Data.header(6) = int16(p);   % period of volumetric wave
-
-# % mmfile.Data.header(6) = int16(str2double(handles.optoperiod.String));   % period of volumetric wave
-# mmfile.Data.header(7) = handles.plugin.Value; % code for plugin id #
-# mmfile.Data.header(8) = int16(unit);
-# mmfile.Data.header(9) = int16(experiment);
-# mmfile.Data.header(10) = uint16(handles.meso_check.Value);  % mesoscope enabled?
-# mmfile.Data.header(11) = uint16(handles.meso_type.Value);   % what type?
-# mmfile.Data.header(12) = uint16(size(handles.roitable.Data,1));   % # of ROIs
-# for w=1:length(stim_id)
-#     mmfile.Data.header(12+w) = int16(stim_id(w));                    % stimulus id [13 14 15 16] up to 4 numbers
-# end
-
-MMAP_FILE = '../scanbox.mmap'
+MMAP_FILE = cfg.get('mmap_path', 'mmapPath')
 
 mmfile = np.memmap(MMAP_FILE, dtype=np.uint16, mode='r+')
 
@@ -125,9 +100,6 @@ def main(mouseName, experimentID):
 
 if __name__ == '__main__':   
     #Get config data
-    configPath = './config.ini'
-    cfg = configparser.RawConfigParser(allow_no_value=True)
-    cfg.read(configPath)
     mouseName = cfg.get('name', 'miceName')
     experimentID = cfg.get('experiment_id', 'experimentID')
     
