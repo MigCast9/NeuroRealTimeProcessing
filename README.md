@@ -9,7 +9,7 @@ What the scanbox.mmap file contains is the Green PMT (chA).
 ## Step-by-step on how to read data real-time:
 1) Set '.mmap' to True in the config file
 2) Open Scanbox
-3) Check 'plug in' box in the Scanbox UI before running
+3) Check the 'plug in' box in the Scanbox UI before running
 4) After reading a frame using your Python/MATLAB script tell scanbox 
    by writing '-1' to the respective index in the Header (reference the code for that)
 5) Save each frame or/and use the frames as you go to do whatever you need
