@@ -38,7 +38,7 @@ import os
 #     mmfile.Data.header(12+w) = int16(stim_id(w));                    % stimulus id [13 14 15 16] up to 4 numbers
 # end
 
-MMAP_FILE = 'scanbox.mmap'
+MMAP_FILE = '../scanbox.mmap'
 
 mmfile = np.memmap(MMAP_FILE, dtype=np.uint16, mode='r+')
 
