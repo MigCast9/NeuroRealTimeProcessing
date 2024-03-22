@@ -84,7 +84,7 @@ def main(mouseName, experimentID):
     
     nlines = 512
     ncols = 796
-        
+            
     while True:
         headerData = extractHeaderData()
         currFrame = headerData['frame']
@@ -105,7 +105,7 @@ def main(mouseName, experimentID):
         chA = extractChannelData(nlines, ncols)
         
         #Signal that the frame has been consumed
-        mmfile[0] = -1
+        mmfile[0][0] = -1
         
         #####################################################################################
         #Use the data
