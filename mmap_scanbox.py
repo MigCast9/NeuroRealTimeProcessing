@@ -16,11 +16,6 @@ cfg = configparser.RawConfigParser(allow_no_value=True)
 cfg.read(configPath)
 
 MMAP_FILE = cfg.get('mmap_path', 'mmapPath')
-configPath = './config.ini'
-cfg = configparser.RawConfigParser(allow_no_value=True)
-cfg.read(configPath)
-
-MMAP_FILE = cfg.get('mmap_path', 'mmapPath')
 
 mmfile = np.memmap(MMAP_FILE, dtype=np.uint16, mode='r+')
 
