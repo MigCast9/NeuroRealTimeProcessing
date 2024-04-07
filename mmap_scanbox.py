@@ -9,6 +9,13 @@ import csv
 import configparser
 import os
 
+MAX_16BIT = 65535
+
+configPath = './config.ini'
+cfg = configparser.RawConfigParser(allow_no_value=True)
+cfg.read(configPath)
+
+MMAP_FILE = cfg.get('mmap_path', 'mmapPath')
 configPath = './config.ini'
 cfg = configparser.RawConfigParser(allow_no_value=True)
 cfg.read(configPath)
@@ -50,7 +57,9 @@ def extractHeaderData():
 
 def extractChannelData(nlines, ncols):
     chA = np.frombuffer(mmfile, dtype=np.uint16, count=nlines * ncols, offset=header_size)
-    chA = chA.reshape((nlines, ncols))
+    chA = chA.reshape((ncols, nlines))
+    chA = chA.T
+    chA = MAX_16BIT - chA
     
     return chA
 
@@ -59,6 +68,7 @@ def main(mouseName, experimentID):
     
     nlines = 512
     ncols = 796
+            
             
     while True:
         headerData = extractHeaderData()
@@ -70,7 +80,7 @@ def main(mouseName, experimentID):
                 return
             headerData = extractHeaderData()
             currFrame = headerData['frame']
-        
+        print(headerData)
         #If its our first time seeing a frame, we extract the dimensions for the channels
         if currFrame == 0:
             nlines = int(headerData['nlines'])            
@@ -79,8 +89,7 @@ def main(mouseName, experimentID):
         #Extract channels
         chA = extractChannelData(nlines, ncols)
         
-        #Signal that the frame has been consumed
-        mmfile[0][0] = -1
+        
         
         #####################################################################################
         #Use the data
@@ -95,6 +104,9 @@ def main(mouseName, experimentID):
         with open(f'{mouseName}_{experimentID}/frame_{currFrame}.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerows(chA)
+
+        #Signal that the frame has been consumed
+        mmfile[0] = -1
         
         
 
@@ -121,3 +133,15 @@ if __name__ == '__main__':
     #Woring: write -1 so matlab scanbox code knows its time for next frame
     
     del mmfile
+
+
+# clear all;
+# clc;
+
+# dirSbx = 'C:\Users\DadarlatLab\Documents\MATLAB\ScanboxTower1-master\scanknob\MiguelTest1\MiguelTest1_000_000';
+# info = load([dirSbx, '.mat']).info;
+
+# frameN = 1;
+# x = squeeze(sbxread(dirSbx, 0, frameN));
+
+# size(x)
